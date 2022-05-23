@@ -1,10 +1,8 @@
 CC = gcc
-AR = ar
-AR_FLAGS = rsv
-OBJ_DIR = ./obj
-CFLAGS  = -Wall -g -std=c99
+
+CFLAGS  = -Wall -g
 LIBS    = -lreadline
-INC = -Iinc -I/usr/local
+INC = -Iinc
 
 SRC = $(shell find ./src -type f -name '*.c')
 OBJ = $(patsubst %.c, %.o, $(SRC))
@@ -20,7 +18,8 @@ fld:
 	@mkdir -p obj
 
 $(BIN): $(OBJ)
-	$(CC) $(CFLAGS) $^ $(LIBS) -o bin/$@ 
+	@echo $^
+	$(CC) $(CFLAGS) $^ -o bin/$@ $(LIBS)
 
 %.o: %.c
 	@echo $<

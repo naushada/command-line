@@ -33,25 +33,25 @@ const Command_t CMD[] = {
   },
   {
     "quit",
-    (char *)0,
+    {(char *)0},
     "Exiting from Command Prompt"
   },
   {
     "?",
-    (char *)0,
+    {(char *)0},
     "This is to get the help of supported command"
 
   },
   {
     "help",
-    (char *)0,
+    {(char *)0},
     "This is to get he help of supported command"
   },
 
   /*This mull be the last row.*/
   {
       (char *)0, 
-      (char *)0, 
+      {(char *)0}, 
       (char *)0
   }
 
@@ -71,8 +71,7 @@ char *command_arg_list_generator(const char *text, int state)
   /* If this is a new word to complete, initialize now.  This includes
      saving the length of TEXT for efficiency, and initializing the index
      variable to 0. */
-  if (!state)
-  {
+  if (!state) {
     CTX.cmd_arg_offset = 0;
   }
 
@@ -98,8 +97,7 @@ char *command_arg_generator(const char *text, int state)
   /* If this is a new word to complete, initialize now.  This includes
      saving the length of TEXT for efficiency, and initializing the index
      variable to 0. */
-  if (!state)
-  {
+  if (!state) {
     CTX.cmd_arg_offset = 0;
   }
 
@@ -107,11 +105,9 @@ char *command_arg_generator(const char *text, int state)
   int *sub_idx = &CTX.cmd_arg_offset;
 
   /* Return the next name which partially matches from the command list. */
-  while(NULL != (name = CMD[*idx].argv[*sub_idx]))
-  {
+  while(NULL != (name = CMD[*idx].argv[*sub_idx])) {
     *sub_idx += 1;
-    if(strncmp (name, text, strlen(text)) == 0)
-    {
+    if(strncmp (name, text, strlen(text)) == 0) {
       return(strdup(name));
     }
   }
@@ -142,19 +138,16 @@ char *command_generator(const char *text, int state)
   /* If this is a new word to complete, initialize now.  This includes
      saving the length of TEXT for efficiency, and initializing the index
      variable to 0. */
-  if (!state)
-  {
+  if (!state) {
     CTX.cmd_offset = 0;
     CTX.len = strlen(text);
   }
 
   int *idx = &CTX.cmd_offset;
   /* Return the next name which partially matches from the command list. */
-  while((char *)0 != (name = CMD[*idx].cmd))
-  {
+  while((char *)0 != (name = CMD[*idx].cmd)) {
     *idx += 1;
-    if(!strncmp (name, text, CTX.len))
-    {
+    if(!strncmp (name, text, CTX.len)) {
       return(strdup(name));
     }
   }
@@ -186,27 +179,20 @@ char **command_completion(const char *text, int start, int end)
   /* If this word is at the start of the line, then it is a command
      to complete.  Otherwise it is the name of a file in the current
      directory. */
-  if(start == 0)
-  {
+  if(start == 0) {
     rl_attempted_completion_over = 1;
     matches = rl_completion_matches(text, command_generator);
   }
-  else
-  {
+  else {
     /*user has hit the space bar*/
-    if(start == end)
-    {
+    if(start == end) {
       int idx = 0;
       /*remember it into its context - this is the command whose argument(s) to be listed.*/
       //ReadlineIF::cmdName(rl_line_buffer);
 
       /*Return the entire arguments - list must have last element as NULL.*/
-      for(idx = 0; CMD[idx].cmd; idx++)
-      {
-        if(!strncmp(rl_line_buffer,
-                    CMD[idx].cmd,
-                    strlen(CMD[idx].cmd)))
-        {
+      for(idx = 0; CMD[idx].cmd; idx++) {
+        if(!strncmp(rl_line_buffer, CMD[idx].cmd, strlen(CMD[idx].cmd))) {
           /*remember this offset and will be used while looping through command arguments.*/
           CTX.cmd_offset = idx;
           rl_attempted_completion_over = 1;
@@ -216,8 +202,7 @@ char **command_completion(const char *text, int start, int end)
         }
       }
     }
-    else
-    {
+    else {
       /*user has entered the initials of argument*/
       rl_attempted_completion_over = 1;
       matches = rl_completion_matches(text, command_arg_generator);
@@ -251,17 +236,14 @@ bool is_valid(char *cmd)
 {
   int idx;
   bool result = false;
-  do
-  {
-    for(idx = 0; CMD[idx].cmd; idx++)
-    {
-      if(cmd && !strcmp(cmd, CMD[idx].cmd))
-      {
+  do {
+    for(idx = 0; CMD[idx].cmd; idx++) {
+      if(cmd && !strcmp(cmd, CMD[idx].cmd)) {
         result = true;
         break;
       }
     }
-  }while(0);
+  } while(0);
 
   return(result);
 }
@@ -291,10 +273,8 @@ void help(char *cmd)
   int i;
   int printed = 0;
 
-  for (i = 0; CMD[i].cmd; i++)
-  {
-    if(!*cmd || (!strcmp(cmd, CMD[i].cmd)))
-    {
+  for (i = 0; CMD[i].cmd; i++) {
+    if(!*cmd || (!strcmp(cmd, CMD[i].cmd))) {
       printf("%s\t\t%s.\n", 
              CMD[i].cmd, 
              CMD[i].usage);
@@ -302,15 +282,12 @@ void help(char *cmd)
     }
   }
 
-  if(!printed)
-  {
+  if(!printed) {
     fprintf (stderr, "No commands match %s  Possibilties are:\n", cmd);
 
-    for (i = 0; CMD[i].cmd; i++)
-    {
+    for (i = 0; CMD[i].cmd; i++) {
       /* Print in six columns. */
-      if (printed == 10)
-      {
+      if (printed == 10) {
         printed = 0;
         printf ("\n");
       }
@@ -356,32 +333,27 @@ int execute_line(char *req)
 
   isFound = is_valid(cmd);
 
-  do 
-  {
-    if(!isFound)
-    {
+  do {
+    if(!isFound) {
       fprintf(stderr, "%s:%u Invalid command\n", __FILE__, __LINE__);
       help(cmd);
       /*bypass the following statement.*/
       break;
     }
   
-    if(!strncmp(cmd, "help", 4) || (!strncmp(cmd, "?", 1)))
-    {
+    if(!strncmp(cmd, "help", 4) || (!strncmp(cmd, "?", 1))) {
       help(cmd);
     }
-    else if(!strncmp(cmd, "quit", 4))
-    {
+    else if(!strncmp(cmd, "quit", 4)) {
       quit();
     }
-    else
-    {
+    else {
       /* Call the function. */
       //process_command(origLine, strlen(origLine));
       status = 0;
     }
 
-  }while(0);
+  } while(0);
 
   free(line);
   return(status);
@@ -407,11 +379,9 @@ int command_line_main(char *prompt)
        and execute it. */
     s = stripwhite(line);
 
-    if(*s)
-    {
+    if(*s) {
       add_history(s);
-      if(!execute_line(s))
-      {
+      if(!execute_line(s)) {
         /*Send this command to hostapd via control interface.*/
         //if(-1 == transmit(s))
         {
@@ -423,16 +393,14 @@ int command_line_main(char *prompt)
 
     free (line);
   }
+
+  return(0);
 }
 
-int execute_command(int cnt, ...)
+int execute_command(const char *req)
 {
-  va_list args;
-  va_start(args, cnt);
-
-
-
-  va_end(args);
+  
+  return(0);
 }
 
 

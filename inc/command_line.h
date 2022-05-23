@@ -37,7 +37,7 @@ void help(char *cmd);
 char *stripwhite(char *string);
 bool is_valid(char *cmd);
 int init(void);
-execute_command(int cnt, ...);
+int execute_command(const char *req);
 
 
 
