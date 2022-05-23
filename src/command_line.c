@@ -21,30 +21,42 @@ const Command_t CMD[] = {
   {   /* command name */
       "attach_ue",
       /* command argument(s) */
-      {"cell_id=", "5g-stmsi=", (char *)0},
+      {"cell_id=", "5g-stmsi=","guami=", (char *)0},
+      handle_attach_ue,
       /* command description */ 
       "Attach UE to AMF(Application and Mobility Function)"
   },
 
   {
       "send_rrc_reconfiguration" , 
-      {"arg1=", "arg2=", (char *)0}, 
+      {"arg1=", "arg2=", (char *)0},
+      handle_attach_ue,
       "Sending RRC Reconfiguration"
   },
   {
+      "dump_ctx",
+      {(char *)0},
+      handle_attach_ue,
+      "Displays the contents of internal data structure CTX."
+  },
+
+  {
     "quit",
     {(char *)0},
+    handle_attach_ue,
     "Exiting from Command Prompt"
   },
   {
     "?",
     {(char *)0},
+    handle_attach_ue,
     "This is to get the help of supported command"
 
   },
   {
     "help",
     {(char *)0},
+    handle_attach_ue,
     "This is to get he help of supported command"
   },
 
@@ -52,12 +64,65 @@ const Command_t CMD[] = {
   {
       (char *)0, 
       {(char *)0}, 
+      (void *)0,
       (char *)0
   }
 
 };
 
-Context_t CTX = {0,0,(char *)0, false, 0};
+Context_t CTX = {0, 0, 
+                    /* selected command name */(char *)0, 
+                    /* selected command argument */{(char *)0}, 
+                    false, 0};
+
+
+
+/* registered callback for processing of command */
+
+/**
+ * @brief 
+ * 
+ * @param arg 
+ * @return int 
+ */
+int handle_attach_ue(const char *arg)
+{
+  fprintf(stderr, "The received Argument is %s\n", arg);
+
+  return(0);
+}
+
+/**
+ * @brief 
+ * 
+ */
+void display_ctx(void)
+{
+  fprintf(stderr, "CommandOffset CommandArgOffset CommandName CommandArguments isContinue Len\n");
+  fprintf(stderr, "%u %u %s %s %u %u\n",CTX.cmd_offset,CTX.cmd_arg_offset, CTX.cmd_name, CTX.cmd_args[0], CTX.is_continue, CTX.len);
+}
+
+/**
+ * @brief 
+ * 
+ * @param arg_name 
+ * @return true 
+ * @return false 
+ */
+bool is_arg_already_selected(const char *arg_name)
+{
+  bool result = false;
+  int offset;
+
+  for(offset = 0; CTX.cmd_args[offset]; ++offset) {
+    if(!strcmp(arg_name, CTX.cmd_args[offset])) {
+      result = true;
+      break;
+    }
+  }
+
+  return(result);
+}
 
 /**
  * @brief 
@@ -85,7 +150,8 @@ char *command_arg_list_generator(const char *text, int state)
 }
 
 /**
- * @brief 
+ * @brief This function is invoked by readline until it returns NULL. First time state will be zero 
+ *        and for subsequent argument state will be non-zero.
  * 
  * @param text 
  * @param state 
@@ -112,7 +178,7 @@ char *command_arg_generator(const char *text, int state)
     }
   }
 
-  /*Reset to default either for next command or command argument(s).*/
+  /*Reset to default either for next command or command argument(s) are exhausted.*/
   CTX.cmd_arg_offset = 0;
 
   /* If no names matched, then return NULL. */
@@ -397,9 +463,37 @@ int command_line_main(char *prompt)
   return(0);
 }
 
+/**
+ * @brief 
+ * 
+ * @param req 
+ * @return int 
+ */
 int execute_command(const char *req)
 {
+  if(!req) {
+    /* the command is empty */
+    return(0);
+  }
   
+  /* get the command */
+  char cmd_name[256];
+  int cnt = sscanf(req, "%s", cmd_name);
+
+  if(EOF == cnt) {
+    /* Extracting of command name failed */
+    return(0);
+  }
+
+  int offset;
+  for(offset = 0; CMD[offset].cmd; ++offset) {
+    if(!strcmp(cmd_name, CMD[offset].cmd)) {
+      /* invoke the registered callback +1 for to get rid of preceeding space*/
+      CMD[offset].callback(req+1+strlen(cmd_name));
+      break;
+    }
+  }
+
   return(0);
 }
 

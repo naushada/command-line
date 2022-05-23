@@ -13,15 +13,19 @@
 typedef enum {false, true} bool;
 
 typedef struct {
-	char *cmd;
-	char *argv[16];
-	char *usage;  
+	const char *cmd;
+	const char *argv[255];
+	int (*callback)(const char *cmd_argument);
+	const char *usage;
 }Command_t;
 
 typedef struct {
 	int cmd_offset;
 	int cmd_arg_offset;
-	char* cmd_name;
+	/* selected command */
+	char *cmd_name;
+	/* selected arguments */
+	char *cmd_args[255];
 	bool is_continue;
 	int len;
 }Context_t;
@@ -38,9 +42,12 @@ char *stripwhite(char *string);
 bool is_valid(char *cmd);
 int init(void);
 int execute_command(const char *req);
+bool is_arg_already_selected(const char *arg_name);
+void display_ctx(void);
 
+/* callback function prototype */
 
-
+int handle_attach_ue(const char *arg);
 
 
 
