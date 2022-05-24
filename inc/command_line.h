@@ -9,6 +9,9 @@
 #include <string.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 typedef enum {false, true} bool;
 
@@ -30,6 +33,13 @@ typedef struct {
 	int len;
 }Context_t;
 
+typedef struct {
+	char IP[16];
+	unsigned int PORT;
+	int connFd;
+	struct sockaddr_in peer_addr;
+}Peer_t;
+
 char **command_completion(const char *text, int start, int end);
 char *command_generator(const char *text, int state);
 char *command_arg_generator(const char *text, int state);
@@ -47,8 +57,14 @@ void display_ctx(void);
 
 /* callback function prototype */
 
-int handle_attach_ue(const char *arg);
-
+int on_ue_attach(const char *arg);
+int on_ue_detach(const char *arg);
+int on_rrc_reconfiguration(const char *arg);
+int on_dummy(const char *arg);
+int on_ul_data(const char *arg);
+int on_dl_data(const char *arg);
+int on_peer_config(const char *arg);
+int show_peer_config(const char *arg);
 
 
 #endif /* __command_line_h__ */

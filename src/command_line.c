@@ -22,41 +22,83 @@ const Command_t CMD[] = {
       "attach_ue",
       /* command argument(s) */
       {"cell_id=", "5g-stmsi=","guami=", (char *)0},
-      handle_attach_ue,
+      on_ue_attach,
       /* command description */ 
       "Attach UE to AMF(Application and Mobility Function)"
+  },
+
+  {   /* command name */
+      "dettach_ue",
+      /* command argument(s) */
+      {"cell_id=", "5g-stmsi=","guami=", (char *)0},
+      on_ue_detach,
+      /* command description */ 
+      "Dettach UE to AMF(Application and Mobility Function)"
+  },
+
+  {   /* command name */
+      "send_ul_data",
+      /* command argument(s) */
+      {"cell_id=", "5g-stmsi=","guami=", (char *)0},
+      on_ul_data,
+      /* command description */ 
+      "Pumping UL Data from UE to gNB"
+  },
+
+  {   /* command name */
+      "send_dl_data",
+      /* command argument(s) */
+      {"cell_id=", "5g-stmsi=","guami=", (char *)0},
+      on_dl_data,
+      /* command description */ 
+      "Pumping DL Data from UE to gNB"
   },
 
   {
       "send_rrc_reconfiguration" , 
       {"arg1=", "arg2=", (char *)0},
-      handle_attach_ue,
+      on_rrc_reconfiguration,
       "Sending RRC Reconfiguration"
   },
+
+  {
+      "set_peer_config" , 
+      {"ip=", "port=", (char *)0},
+      on_peer_config,
+      "Peer Server Configuration"
+  },
+
+  {
+      "show_peer_config" , 
+      {"ip=", "port=", (char *)0},
+      show_peer_config,
+      "Show Peer Configuration"
+  },
+
   {
       "dump_ctx",
       {(char *)0},
-      handle_attach_ue,
+      on_dummy,
       "Displays the contents of internal data structure CTX."
   },
 
   {
     "quit",
     {(char *)0},
-    handle_attach_ue,
+    on_dummy,
     "Exiting from Command Prompt"
   },
   {
     "?",
     {(char *)0},
-    handle_attach_ue,
+    on_dummy,
     "This is to get the help of supported command"
 
   },
   {
     "help",
     {(char *)0},
-    handle_attach_ue,
+    on_dummy,
     "This is to get he help of supported command"
   },
 
@@ -76,6 +118,7 @@ Context_t CTX = {0, 0,
                     false, 0};
 
 
+Peer_t PEER = {"127.0.0.1", 7788, -1};
 
 /* registered callback for processing of command */
 
@@ -85,7 +128,75 @@ Context_t CTX = {0, 0,
  * @param arg 
  * @return int 
  */
-int handle_attach_ue(const char *arg)
+int on_ue_attach(const char *arg)
+{
+  fprintf(stderr, "The received Argument is %s\n", arg);
+
+  return(0);
+}
+
+int on_ue_detach(const char *arg)
+{
+  fprintf(stderr, "The received Argument is %s\n", arg);
+
+  return(0);
+}
+
+int on_ul_data(const char *arg)
+{
+  fprintf(stderr, "The received Argument is %s\n", arg);
+
+  return(0);
+}
+
+int on_dl_data(const char *arg)
+{
+  fprintf(stderr, "The received Argument is %s\n", arg);
+
+  return(0);
+}
+
+int on_rrc_reconfiguration(const char *arg)
+{
+    fprintf(stderr, "The received Argument is %s\n", arg);
+
+    return(0);
+}
+
+int on_peer_config(const char *arg)
+{
+  char IP[16];
+  unsigned int PORT = 0;
+
+  memset((void *)IP, 0, sizeof(IP));
+  if(arg) {
+    int cnt = sscanf(arg, "ip=%s port=%u",IP, &PORT);
+    if(cnt > 1) {
+  
+      memcpy(PEER.IP, IP, strlen(IP));
+      PEER.PORT = PORT;
+
+    }
+  }
+
+  PEER.connFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  PEER.peer_addr.sin_family = AF_INET;
+  PEER.peer_addr.sin_port = htons(PEER.PORT);
+  PEER.peer_addr.sin_addr.s_addr = htonl(inet_addr(PEER.IP));
+  memset((void *)PEER.peer_addr.sin_zero, 0, sizeof(PEER.peer_addr.sin_zero));
+
+  return(0);
+}
+
+int show_peer_config(const char *arg)
+{
+  fprintf(stderr, "IP PORT CONNFD\n");
+  fprintf(stderr, "%s %x %d\n", PEER.IP, PEER.PORT, PEER.connFd);
+
+  return(0);
+}
+
+int on_dummy(const char *arg)
 {
   fprintf(stderr, "The received Argument is %s\n", arg);
 
