@@ -37,6 +37,7 @@ typedef struct {
 	char IP[16];
 	unsigned int PORT;
 	int connFd;
+	int sockFd;
 	struct sockaddr_in peer_addr;
 }Peer_t;
 

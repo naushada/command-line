@@ -165,8 +165,8 @@ int on_rrc_reconfiguration(const char *arg)
 
 int on_peer_config(const char *arg)
 {
-  char IP[16];
-  unsigned int PORT = 0;
+  char IP[16] = "127.0.0.1";
+  unsigned int PORT = 7788;
 
   memset((void *)IP, 0, sizeof(IP));
   if(arg) {
@@ -179,7 +179,7 @@ int on_peer_config(const char *arg)
     }
   }
 
-  PEER.connFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  PEER.sockFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   PEER.peer_addr.sin_family = AF_INET;
   PEER.peer_addr.sin_port = htons(PEER.PORT);
   PEER.peer_addr.sin_addr.s_addr = htonl(inet_addr(PEER.IP));
@@ -233,6 +233,47 @@ bool is_arg_already_selected(const char *arg_name)
   }
 
   return(result);
+}
+
+/**
+ * @brief 
+ * 
+ * @param req 
+ * @param len 
+ * @return int 
+ */
+int send_to_peer(const char *req, unsigned int len)
+{
+  if(PEER.sockFd < 0) {
+  
+    PEER.sockFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+   
+  }
+
+  if(PEER.connFd < 0) {
+
+    PEER.connFd = connect(PEER.sockFd, (struct sockaddr *)&PEER.peer_addr, sizeof(struct sockaddr));
+
+  }
+
+  if(PEER.connFd > 0) {
+    /* Connection is succeded - */
+
+    int offset = 0;
+    
+    do {
+      
+      int sent_len = -1;
+      sent_len = send(PEER.connFd, (req+offset), (len - offset), 0);
+
+      if(sent_len > 0) {
+        offset += sent_len;
+      }
+
+    } while(offset != len);
+
+  }
+  return(0);
 }
 
 /**
