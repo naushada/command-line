@@ -118,7 +118,7 @@ Context_t CTX = {0, 0,
                     false, 0};
 
 
-Peer_t PEER = {"127.0.0.1", 7788, -1};
+Peer_t PEER = {"127.0.0.1", 7788, false, -1, {0}, {0}};
 
 /* registered callback for processing of command */
 
@@ -190,8 +190,8 @@ int on_peer_config(const char *arg)
 
 int show_peer_config(const char *arg)
 {
-  fprintf(stderr, "IP PORT CONNFD\n");
-  fprintf(stderr, "%s %x %d\n", PEER.IP, PEER.PORT, PEER.connFd);
+  fprintf(stderr, "IP PORT IS-CONNECTED SOCK-FD\n");
+  fprintf(stderr, "%s %x %d %d\n", PEER.IP, PEER.PORT, PEER.is_connected, PEER.sockFd);
 
   return(0);
 }
@@ -250,21 +250,21 @@ int send_to_peer(const char *req, unsigned int len)
    
   }
 
-  if(PEER.connFd < 0) {
+  if(!PEER.is_connected) {
 
-    PEER.connFd = connect(PEER.sockFd, (struct sockaddr *)&PEER.peer_addr, sizeof(struct sockaddr));
+    PEER.is_connected = connect(PEER.sockFd, (struct sockaddr *)&PEER.peer_addr, sizeof(struct sockaddr));
 
   }
 
-  if(PEER.connFd > 0) {
+  if(PEER.is_connected) {
     /* Connection is succeded - */
 
     int offset = 0;
     
     do {
-      
+
       int sent_len = -1;
-      sent_len = send(PEER.connFd, (req+offset), (len - offset), 0);
+      sent_len = send(PEER.sockFd, (req+offset), (len - offset), 0);
 
       if(sent_len > 0) {
         offset += sent_len;
@@ -649,11 +649,53 @@ int execute_command(const char *req)
   return(0);
 }
 
+/**
+ * @brief spawning worker forreceiving of response from peer.
+ * 
+ * @param arg 
+ * @return true 
+ * @return false 
+ */
+bool spawn_worker_to_receive(void *arg)
+{
+    pthread_t threadId = 0;
+    int rc = 0;	 
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, (1024 * 1024));
+    
+    rc = pthread_create(&threadId, &attr, event_handler_loop, &arg);
+    
+    if(rc)
+    {
+	    return false;
+    }
+
+    pthread_detach(threadId);
+
+    return true;
+}
+
+/**
+ * @brief 
+ * 
+ * @param arg 
+ * @return void* 
+ */
+void* event_handler_loop(void *arg) 
+{
+  for(;;) {
+    /* Receive from socket */
+  }
+
+  return(NULL);
+}
+
 
 int main(int argc, char *argv[]) 
 {
 
-  command_line_main("PW:>");
+  command_line_main("Peace/>");
 
   return(0);
 

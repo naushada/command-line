@@ -1,7 +1,7 @@
 CC = gcc
 
 CFLAGS  = -Wall -g
-LIBS    = -lreadline
+LIBS    = -lreadline -lpthread
 INC = -Iinc
 
 SRC = $(shell find ./src -type f -name '*.c')

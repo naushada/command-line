@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 typedef enum {false, true} bool;
 
@@ -36,9 +37,10 @@ typedef struct {
 typedef struct {
 	char IP[16];
 	unsigned int PORT;
-	int connFd;
+	bool is_connected;
 	int sockFd;
 	struct sockaddr_in peer_addr;
+	struct sockaddr_in self_addr;
 }Peer_t;
 
 char **command_completion(const char *text, int start, int end);
@@ -66,6 +68,7 @@ int on_ul_data(const char *arg);
 int on_dl_data(const char *arg);
 int on_peer_config(const char *arg);
 int show_peer_config(const char *arg);
-
+bool spawn_worker_to_receive(void *arg);
+void* event_handler_loop(void *arg);
 
 #endif /* __command_line_h__ */
