@@ -311,7 +311,7 @@ char *command_arg_list_generator(const char *text, int state)
  */
 char *command_arg_generator(const char *text, int state)
 {
-  const char *name;
+  char *name = NULL;
   /* If this is a new word to complete, initialize now.  This includes
      saving the length of TEXT for efficiency, and initializing the index
      variable to 0. */
@@ -325,7 +325,7 @@ char *command_arg_generator(const char *text, int state)
   /* Return the next name which partially matches from the command list. */
   while(NULL != (name = CMD[*idx].argv[*sub_idx])) {
     *sub_idx += 1;
-    if(strncmp (name, text, strlen(text)) == 0) {
+    if(!strncmp (name, text, strlen(text))) {
       return(strdup(name));
     }
   }
@@ -587,6 +587,7 @@ int command_line_main(char *prompt)
   /* Loop reading and executing lines until the user quits. */
   for( ; !continue_status(); ) {
 
+    /* readline allocates the memory for line and must be freed by application. */
     line = readline(prompt);
 
     if(!line)
@@ -608,7 +609,8 @@ int command_line_main(char *prompt)
         }
       }
     }
-
+    
+    /* freeying memory allocated by readline */
     free (line);
   }
 
