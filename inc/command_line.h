@@ -60,6 +60,7 @@ void pop_front(list_t **head, const char *arg_name);
 bool is_found(list_t *head, const char *arg_name);
 void erase(list_t **head);
 int count(list_t *head);
+void display(list_t *head);
 
 char **command_completion(const char *text, int start, int end);
 char *command_generator(const char *text, int state);

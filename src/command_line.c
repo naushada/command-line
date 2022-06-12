@@ -730,6 +730,8 @@ int on_push_back(const char *arg)
     }
   }
 
+  display(head_g);
+
   fprintf(stderr, "%s:%u Value of count %d value is %s\n", __FILE__, __LINE__, count(head_g), value);
   return(0);
 }
@@ -783,14 +785,23 @@ void push_back(list_t **head, list_t *node)
 void pop_back(list_t **head, const char *arg_name)
 {
   list_t *hh = *head;
-  for(; hh != NULL;) {
-    list_t *tmp = hh;
-    hh = hh->next;
-    if(arg_name && !strncmp(arg_name, tmp->arg, strlen(arg_name))) {
-      free(tmp);
+  do {
+
+    if(hh && (NULL == hh->next) && arg_name && !strncmp(arg_name, hh->arg, strlen(arg_name))) {
+      free(*head);
+      *head = NULL;
       break;
     }
-  }
+
+    for(; hh != NULL;) {
+      list_t *tmp = hh;
+      hh = hh->next;
+      if(arg_name && !strncmp(arg_name, tmp->arg, strlen(arg_name))) {
+        free(tmp);
+        break;
+      }
+    }
+  } while(0);
 }
 
 /**
@@ -817,11 +828,21 @@ bool is_found(list_t *head, const char *arg_name)
 void erase(list_t **head)
 {
   list_t *hh = *head;
-  for(; hh != NULL;) {
-    list_t *tmp = hh;
-    hh = hh->next;
-    free(tmp);
-  }
+  do {
+
+    if(hh && NULL == hh->next) {
+      free(*head);
+      *head = NULL;
+      break;
+    }
+
+    for(; hh != NULL;) {
+      list_t *tmp = hh;
+      hh = hh->next;
+      free(tmp);
+    }
+
+  } while(0);
 }
 
 /**
@@ -838,6 +859,13 @@ int count(list_t *head)
   }
 
   return(cnt);
+}
+
+void display(list_t *head)
+{
+  for(;head; head = head->next) {
+    fprintf(stderr, "%s\n", head->arg);
+  }
 }
 
 /**
