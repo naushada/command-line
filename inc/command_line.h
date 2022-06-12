@@ -43,6 +43,24 @@ typedef struct {
 	struct sockaddr_in self_addr;
 }Peer_t;
 
+struct list_t {
+	char arg[256];
+	int offset;
+	struct list_t *next;
+};
+
+typedef struct list_t list_t;
+
+void push_back(list_t **head, list_t *node);
+void pop_back(list_t **head, const char *arg_name);
+
+void push_front(list_t **head, list_t *node);
+void pop_front(list_t **head, const char *arg_name);
+
+bool is_found(list_t *head, const char *arg_name);
+void erase(list_t **head);
+int count(list_t *head);
+
 char **command_completion(const char *text, int start, int end);
 char *command_generator(const char *text, int state);
 char *command_arg_generator(const char *text, int state);
@@ -70,5 +88,9 @@ int on_peer_config(const char *arg);
 int show_peer_config(const char *arg);
 bool spawn_worker_to_receive(void *arg);
 void* event_handler_loop(void *arg);
+
+
+int on_push_back(const char *arg);
+int on_pop_back(const char *arg);
 
 #endif /* __command_line_h__ */

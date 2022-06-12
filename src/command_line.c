@@ -19,6 +19,22 @@
 const Command_t CMD[] = {
 
   {   /* command name */
+      "push_back",
+      /* command argument(s) */
+      {"arg_name=", (char *)0},
+      on_push_back,
+      /* command description */ 
+      "push_back will add element at back to list."
+  },
+  {   /* command name */
+      "pop_back",
+      /* command argument(s) */
+      {"arg_name=", (char *)0},
+      on_pop_back,
+      /* command description */ 
+      "pop_back will remove element at back from list."
+  },
+  {   /* command name */
       "attach_ue",
       /* command argument(s) */
       {"cell_id=", "5g-stmsi=","guami=", (char *)0},
@@ -119,6 +135,8 @@ Context_t CTX = {0, 0,
 
 
 Peer_t PEER = {"127.0.0.1", 7788, false, -1, {0}, {0}};
+
+list_t *head_g = NULL;
 
 /* registered callback for processing of command */
 
@@ -277,11 +295,12 @@ int send_to_peer(const char *req, unsigned int len)
 }
 
 /**
- * @brief 
+ * @brief This function is called by realine until it gets (char *)0. For first time, value of state 
+ *        will be zero and for subsequent call will br non-zero positive value.
  * 
- * @param text 
- * @param state 
- * @return char* 
+ * @param text text to be completed.
+ * @param state zero for first time and +ve value for subsequent call.
+ * @return char* allocated memory will be freed by readline library.
  */
 char *command_arg_list_generator(const char *text, int state)
 {
@@ -298,6 +317,7 @@ char *command_arg_list_generator(const char *text, int state)
   if(NULL == CMD[*idx].argv[*sub_idx])
     return (char *)0;
 
+  /*memory will be freed by readline library.*/
   return(strdup(CMD[*idx].argv[(*sub_idx)++]));
 }
 
@@ -311,7 +331,7 @@ char *command_arg_list_generator(const char *text, int state)
  */
 char *command_arg_generator(const char *text, int state)
 {
-  char *name = NULL;
+  const char *name = NULL;
   /* If this is a new word to complete, initialize now.  This includes
      saving the length of TEXT for efficiency, and initializing the index
      variable to 0. */
@@ -326,6 +346,7 @@ char *command_arg_generator(const char *text, int state)
   while(NULL != (name = CMD[*idx].argv[*sub_idx])) {
     *sub_idx += 1;
     if(!strncmp (name, text, strlen(text))) {
+      fprintf(stderr, "%s:%u arg name is %s", __FILE__, __LINE__, text);
       return(strdup(name));
     }
   }
@@ -591,7 +612,7 @@ int command_line_main(char *prompt)
     line = readline(prompt);
 
     if(!line)
-      break;
+      continue;
 
     /* Remove leading and trailing whitespace from the line.
        Then, if there is anything left, add it to the history list
@@ -693,14 +714,144 @@ void* event_handler_loop(void *arg)
   return(NULL);
 }
 
+int on_push_back(const char *arg) 
+{
+  char value[256];
 
+  memset((void *)value, 0, sizeof(value));
+  int cnt = sscanf(arg, "arg_name=%s", value);
+  if(cnt > 0) {
+    /*value is extracted successfully.*/
+    list_t *node = (list_t *)malloc(sizeof(list_t));
+    if(node != NULL) {
+      strcpy(node->arg, value);
+      node->offset = 0;
+      push_back(&head_g, node);
+    }
+  }
+
+  fprintf(stderr, "%s:%u Value of count %d value is %s\n", __FILE__, __LINE__, count(head_g), value);
+  return(0);
+}
+
+int on_pop_back(const char *arg)
+{
+  char value[256];
+
+  memset((void *)value, 0, sizeof(value));
+  int cnt = sscanf(arg, "arg_name=%s", value);
+  if(cnt > 0) {
+    /*value is extracted successfully.*/
+    pop_back(&head_g, value);
+  }
+  
+  fprintf(stderr, "%s:%u Value of count %d value %s\n", __FILE__, __LINE__, count(head_g), value);
+  return(0);
+}
+
+/**
+ * @brief 
+ * 
+ * @param head 
+ * @param node 
+ */
+void push_back(list_t **head, list_t *node)
+{
+  list_t *hh = *head;
+  do {
+    if(!hh) {
+      hh = node;
+      hh->next = NULL;
+      *head = node;
+      break;
+    }
+
+    for(; hh->next != NULL; hh = hh->next) ;
+
+    hh->next = node;
+    break;
+
+  } while(0);
+}
+
+/**
+ * @brief 
+ * 
+ * @param head 
+ * @param arg_name 
+ */
+void pop_back(list_t **head, const char *arg_name)
+{
+  list_t *hh = *head;
+  for(; hh != NULL;) {
+    list_t *tmp = hh;
+    hh = hh->next;
+    if(arg_name && !strncmp(arg_name, tmp->arg, strlen(arg_name))) {
+      free(tmp);
+      break;
+    }
+  }
+}
+
+/**
+ * @brief 
+ * 
+ * @param arg_name 
+ * @return true 
+ * @return false 
+ */
+bool is_found(list_t *head, const char *arg_name)
+{
+  for(; head != NULL; head = head->next) {
+    if(arg_name && !strncmp(head->arg, arg_name, strlen(arg_name))) 
+      return true;
+  }
+  return false;
+}
+
+/**
+ * @brief 
+ * 
+ * @param head 
+ */
+void erase(list_t **head)
+{
+  list_t *hh = *head;
+  for(; hh != NULL;) {
+    list_t *tmp = hh;
+    hh = hh->next;
+    free(tmp);
+  }
+}
+
+/**
+ * @brief Get the arg count object
+ * 
+ * @param head 
+ * @return int 
+ */
+int count(list_t *head)
+{
+  int cnt = 0;
+  for(;head != NULL; head = head->next) {
+    cnt++;
+  }
+
+  return(cnt);
+}
+
+/**
+ * @brief 
+ * 
+ * @param argc 
+ * @param argv 
+ * @return int 
+ */
 int main(int argc, char *argv[]) 
 {
-
   command_line_main("Peace/>");
 
   return(0);
-
 }
 
 #endif /*__command_line_c__*/
