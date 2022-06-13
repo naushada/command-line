@@ -782,25 +782,30 @@ void push_back(list_t **head, list_t *node)
  * @param head 
  * @param arg_name 
  */
-void pop_back(list_t **head, const char *arg_name)
+void pop_back(list_t **head, char *arg_name)
 {
   list_t *hh = *head;
   do {
 
-    if(hh && (NULL == hh->next) && arg_name && !strncmp(arg_name, hh->arg, strlen(arg_name))) {
+    if(hh && NULL == hh->next) {
       free(*head);
       *head = NULL;
       break;
     }
 
-    for(; hh != NULL;) {
-      list_t *tmp = hh;
-      hh = hh->next;
-      if(arg_name && !strncmp(arg_name, tmp->arg, strlen(arg_name))) {
-        free(tmp);
-        break;
-      }
+    list_t *previous = NULL;
+    list_t *current = hh;
+    for(; current && current->next != NULL;) {
+      
+      previous = current;
+      current = current->next;
+      
     }
+    
+    list_t *node = current;
+    previous->next = current->next;
+    free(node);
+
   } while(0);
 }
 

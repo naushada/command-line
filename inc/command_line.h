@@ -52,7 +52,7 @@ struct list_t {
 typedef struct list_t list_t;
 
 void push_back(list_t **head, list_t *node);
-void pop_back(list_t **head, const char *arg_name);
+void pop_back(list_t **head, char *arg_name);
 
 void push_front(list_t **head, list_t *node);
 void pop_front(list_t **head, const char *arg_name);
